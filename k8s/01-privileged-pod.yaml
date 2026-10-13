@@ -1,0 +1,42 @@
+# DELIBERATELY INSECURE - Aikido IaC scanning demo. Do not deploy to a real cluster.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: vulnerable-pod
+  namespace: default            # workload in default namespace
+spec:
+  hostNetwork: true             # host network access
+  hostPID: true                 # host PID namespace
+  hostIPC: true                 # host IPC namespace
+  containers:
+    - name: app
+      image: nginx:latest       # latest tag, not pinned by digest
+      imagePullPolicy: IfNotPresent
+      ports:
+        - containerPort: 80
+          hostPort: 80          # hostPort
+      securityContext:
+        privileged: true                    # privileged container
+        allowPrivilegeEscalation: true
+        runAsUser: 0                        # root
+        readOnlyRootFilesystem: false
+        capabilities:
+          add: ["SYS_ADMIN", "NET_RAW"]     # dangerous capabilities
+      env:
+        - name: DB_PASSWORD
+          value: "Password123!"             # plaintext secret in env
+        - name: AWS_SECRET_ACCESS_KEY
+          value: "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
+      volumeMounts:
+        - name: host-root
+          mountPath: /host
+        - name: docker-sock
+          mountPath: /var/run/docker.sock
+      # no resource limits/requests, no liveness/readiness probes
+  volumes:
+    - name: host-root
+      hostPath:
+        path: /                              # hostPath mounting node root
+    - name: docker-sock
+      hostPath:
+        path: /var/run/docker.sock           # Docker socket mount

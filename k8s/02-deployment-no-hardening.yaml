@@ -1,0 +1,24 @@
+# DELIBERATELY INSECURE - Aikido IaC scanning demo.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: web}
+  template:
+    metadata:
+      labels: {app: web}
+    spec:
+      # default service account, token auto-mounted
+      automountServiceAccountToken: true
+      containers:
+        - name: web
+          image: myregistry.example.com/web          # untagged image
+          imagePullPolicy: IfNotPresent
+          # no securityContext (runs as root, writable FS, no seccomp)
+          # no resources, no probes
+          ports:
+            - containerPort: 8080
