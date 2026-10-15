@@ -108,6 +108,14 @@ app.get('/api/users/:id', (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+// Webhook test endpoint: logs whatever it receives
+app.all('/webhook', (req, res) => {
+  console.log(`[webhook] ${req.method} ${req.originalUrl}`);
+  console.log('[webhook] headers:', JSON.stringify(req.headers, null, 2));
+  console.log('[webhook] body:', JSON.stringify(req.body, null, 2));
+  res.status(200).json(req.body);
+});
+
 // VULN: Verbose error / stack trace disclosure
 app.get('/error', (req, res, next) => next(new Error('Simulated failure in /error handler')));
 app.use((err, req, res, next) => res.status(500).send(`<pre>${err.stack}</pre>`));
