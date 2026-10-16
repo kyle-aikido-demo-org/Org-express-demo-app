@@ -13,9 +13,10 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 // VULN: wide-open CORS, no security headers (CSP, X-Frame-Options, etc.)
 app.use((req, res, next) => {
-  res.set('Access-Control-Allow-Origin', '*');
+  const origin = req.headers.origin;
+  if (origin) res.set('Access-Control-Allow-Origin', origin); // VULN: reflects any origin
   res.set('Access-Control-Allow-Credentials', 'true');
-  res.set('X-Powered-By', 'Express'); // VULN: tech disclosure
+  res.set('X-Powered-By', 'Express');
   next();
 });
 
