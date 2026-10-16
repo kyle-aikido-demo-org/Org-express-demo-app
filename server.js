@@ -120,4 +120,7 @@ app.all('/webhook', (req, res) => {
 app.get('/error', (req, res, next) => next(new Error('Simulated failure in /error handler')));
 app.use((err, req, res, next) => res.status(500).send(`<pre>${err.stack}</pre>`));
 
-setupDb().then(() => app.listen(PORT, () => console.log(`Listening on ${PORT}`)));
+   setupDb().then(() => {
+     require('./private-api')(app, db, rows);
+     app.listen(PORT, () => console.log(`Listening on ${PORT}`));
+   });
