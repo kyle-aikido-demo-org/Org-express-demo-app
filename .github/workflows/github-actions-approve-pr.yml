@@ -11,12 +11,20 @@ jobs:
       github.event.check_run.conclusion == 'success' &&
       join(github.event.check_run.pull_requests.*.number, '') != ''
     runs-on: ubuntu-latest
+    environment: dev
     steps:
       - name: Approve PR
         env:
           GH_TOKEN: ${{ secrets.APPROVERTOKEN }}
           PR: ${{ github.event.check_run.pull_requests[0].number }}
         run: |
-          gh pr review "$PR" --approve \
-            --repo "$GITHUB_REPOSITORY" \
-            --body "Aikido Security check passed."
+          curl -L \
+            -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://github.com{{ github.repository }}/pulls/PR/reviews" \
+            -d '{
+              "body": "Aikido Security check passed, auto-approving.",
+              "event": "APPROVE"
+            }'
